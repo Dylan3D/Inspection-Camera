@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="InspectionCameraIcon.png">
 <meta charset="UTF-8">
 
 <meta
@@ -920,53 +919,105 @@
             `${finalName}.jpg`;
 
 
-        // Create download link
+        // Convert JPEG data URL
+        // into a Blob
 
-        const link =
-            document.createElement(
-                "a"
+        fetch(capturedImageData)
+
+            .then(
+                response =>
+                    response.blob()
+            )
+
+            .then(
+                blob => {
+
+                    // Create temporary
+                    // Blob download URL
+
+                    const url =
+                        URL.createObjectURL(
+                            blob
+                        );
+
+
+                    // Create download link
+
+                    const link =
+                        document.createElement(
+                            "a"
+                        );
+
+
+                    link.href =
+                        url;
+
+                    link.download =
+                        fileName;
+
+                    link.style.display =
+                        "none";
+
+
+                    document.body.appendChild(
+                        link
+                    );
+
+
+                    // Trigger download
+
+                    link.click();
+
+
+                    document.body.removeChild(
+                        link
+                    );
+
+
+                    // Release temporary URL
+
+                    setTimeout(() => {
+
+                        URL.revokeObjectURL(
+                            url
+                        );
+
+                    }, 1000);
+
+
+                    // Show confirmation
+
+                    showMessage(
+
+                        `Saved as ${fileName}`
+
+                    );
+
+
+                    // Return to camera
+
+                    setTimeout(() => {
+
+                        returnToCamera();
+
+                    }, 500);
+
+                }
+            )
+
+            .catch(
+                error => {
+
+                    console.error(
+                        error
+                    );
+
+                    alert(
+                        "Unable to save the photo."
+                    );
+
+                }
             );
-
-
-        link.href =
-            capturedImageData;
-
-        link.download =
-            fileName;
-
-        link.style.display =
-            "none";
-
-
-        document.body.appendChild(
-            link
-        );
-
-
-        link.click();
-
-
-        document.body.removeChild(
-            link
-        );
-
-
-        // Show confirmation
-
-        showMessage(
-
-            `Saved as ${fileName}`
-
-        );
-
-
-        // Return to camera
-
-        setTimeout(() => {
-
-            returnToCamera();
-
-        }, 500);
 
     }
 
