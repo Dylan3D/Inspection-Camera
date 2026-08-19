@@ -77,8 +77,8 @@
         height: 64px;
         border: none;
         border-radius: 14px;
-        background: white;
-        color: black;
+        background: rgba(0, 144, 76);
+        color: white;
         font-size: 20px;
         font-weight: bold;
         cursor: pointer;
@@ -86,7 +86,7 @@
 
     #captureButton:active {
         transform: scale(0.98);
-        background: #dddddd;
+        background: rgba(0, 120, 63);
     }
 
     /* =========================
@@ -142,6 +142,7 @@
         margin-bottom: 14px;
         color: black;
         background: white;
+        text-transform: none;
     }
 
     #buttonRow {
@@ -165,8 +166,13 @@
     }
 
     #saveButton {
-        background: white;
-        color: black;
+        background: rgba(0, 144, 76);
+        color: white;
+    }
+
+    #saveButton:active {
+        transform: scale(0.97);
+        background: rgba(0, 120, 63);
     }
 
     .actionButton:active {
@@ -239,16 +245,18 @@
         <div id="reviewControls">
 
             <label id="fileNameLabel" for="fileName">
-                File Name
+                Inspection Number
             </label>
 
             <input
                 type="text"
                 id="fileName"
-                placeholder="Enter file name"
+                placeholder="Enter inspection number"
                 autocomplete="off"
                 autocapitalize="none"
                 spellcheck="false"
+                inputmode="numeric"
+                pattern="[0-9]*"
             >
 
             <div id="buttonRow">
@@ -547,6 +555,26 @@
 
 
     // ==========================================
+    // NUMERIC INPUT ONLY
+    // ==========================================
+
+    fileNameInput.addEventListener(
+        "input",
+        () => {
+
+            // Remove anything that isn't a number
+
+            fileNameInput.value =
+                fileNameInput.value.replace(
+                    /[^0-9]/g,
+                    ""
+                );
+
+        }
+    );
+
+
+    // ==========================================
     // RETAKE PHOTO
     // ==========================================
 
@@ -587,21 +615,11 @@
             name.trim();
 
 
-        // Remove .jpg or .jpeg if user typed it
+        // Keep numbers only
 
         cleaned =
             cleaned.replace(
-                /\.(jpg|jpeg)$/i,
-                ""
-            );
-
-
-        // Remove characters that are invalid
-        // for common file systems
-
-        cleaned =
-            cleaned.replace(
-                /[\\/:*?"<>|]/g,
+                /[^0-9]/g,
                 ""
             );
 
@@ -691,7 +709,7 @@
         if (!requestedName) {
 
             alert(
-                "Please enter a file name."
+                "Please enter an inspection number."
             );
 
             fileNameInput.focus();
