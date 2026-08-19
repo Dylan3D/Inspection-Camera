@@ -262,7 +262,7 @@
                 <button
                     id="saveButton"
                     class="actionButton">
-                    SAVE PNG
+                    SAVE JPEG
                 </button>
 
             </div>
@@ -501,10 +501,13 @@
         );
 
 
-        // PNG image data
+        // JPEG image data
 
         capturedImageData =
-            canvas.toDataURL("image/png");
+            canvas.toDataURL(
+                "image/jpeg",
+                0.90
+            );
 
 
         // Show captured image
@@ -584,11 +587,11 @@
             name.trim();
 
 
-        // Remove .png if user typed it
+        // Remove .jpg or .jpeg if user typed it
 
         cleaned =
             cleaned.replace(
-                /\.png$/i,
+                /\.(jpg|jpeg)$/i,
                 ""
             );
 
@@ -719,7 +722,7 @@
 
 
         const fileName =
-            `${finalName}.png`;
+            `${finalName}.jpg`;
 
 
         // Create downloadable file
