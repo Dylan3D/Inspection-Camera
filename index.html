@@ -9,11 +9,11 @@
   content="width=device-width, initial-scale=1, viewport-fit=cover"
 >
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#111111">
 
-<title>Photo Camera</title>
+<link rel="apple-touch-icon" href="inspection-icon.png">
+
+<title>Inspection Camera</title>
 
 <style>
     * {
@@ -38,6 +38,42 @@
         height: 100%;
         display: flex;
         flex-direction: column;
+    }
+
+    /* =========================
+       RESET FILE NAME HISTORY
+       ========================= */
+
+    #resetHistoryButton {
+        position: fixed;
+
+        top: calc(12px + env(safe-area-inset-top));
+        right: 12px;
+
+        width: 42px;
+        height: 42px;
+
+        border: none;
+        border-radius: 50%;
+
+        background: rgba(0, 144, 76);
+        color: white;
+
+        font-size: 24px;
+        font-weight: bold;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        cursor: pointer;
+
+        z-index: 50;
+    }
+
+    #resetHistoryButton:active {
+        transform: scale(0.92);
+        background: rgba(0, 120, 63);
     }
 
     /* =========================
@@ -189,14 +225,22 @@
         top: calc(20px + env(safe-area-inset-top));
         left: 50%;
         transform: translateX(-50%);
+
         background: rgba(0, 0, 0, 0.8);
         color: white;
+
         padding: 12px 18px;
+
         border-radius: 10px;
+
         font-size: 16px;
+
         z-index: 100;
+
         display: none;
+
         text-align: center;
+
         max-width: 90%;
     }
 
@@ -210,23 +254,37 @@
 
 <div id="app">
 
+    <!-- RESET BUTTON -->
+
+    <button
+        id="resetHistoryButton"
+        aria-label="Reset file name history"
+        title="Reset file name history">
+        ↻
+    </button>
+
+
     <!-- CAMERA SCREEN -->
 
     <div id="cameraScreen">
 
         <div id="cameraContainer">
+
             <video
                 id="video"
                 autoplay
                 playsinline
                 muted>
             </video>
+
         </div>
 
         <div id="cameraControls">
+
             <button id="captureButton">
                 TAKE PHOTO
             </button>
+
         </div>
 
     </div>
@@ -237,16 +295,22 @@
     <div id="reviewScreen">
 
         <div id="imageContainer">
+
             <img
                 id="photoPreview"
                 alt="Captured Photo"
             >
+
         </div>
 
         <div id="reviewControls">
 
-            <label id="fileNameLabel" for="fileName">
+            <label
+                id="fileNameLabel"
+                for="fileName">
+
                 Inspection Number
+
             </label>
 
             <input
@@ -265,13 +329,17 @@
                 <button
                     id="retakeButton"
                     class="actionButton">
+
                     RETAKE
+
                 </button>
 
                 <button
                     id="saveButton"
                     class="actionButton">
+
                     SAVE JPEG
+
                 </button>
 
             </div>
@@ -294,8 +362,11 @@
     // ELEMENTS
     // ==========================================
 
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
+    const video =
+        document.getElementById("video");
+
+    const canvas =
+        document.getElementById("canvas");
 
     const cameraScreen =
         document.getElementById("cameraScreen");
@@ -321,6 +392,11 @@
     const message =
         document.getElementById("message");
 
+    const resetHistoryButton =
+        document.getElementById(
+            "resetHistoryButton"
+        );
+
 
     // ==========================================
     // VARIABLES
@@ -344,13 +420,19 @@
         try {
 
             const stored =
-                localStorage.getItem(STORAGE_KEY);
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
 
             if (!stored) {
+
                 return [];
+
             }
 
-            return JSON.parse(stored);
+            return JSON.parse(
+                stored
+            );
 
         } catch (error) {
 
@@ -361,11 +443,44 @@
     }
 
 
-    function saveUsedFileNames(fileNames) {
+    function saveUsedFileNames(
+        fileNames
+    ) {
 
         localStorage.setItem(
+
             STORAGE_KEY,
-            JSON.stringify(fileNames)
+
+            JSON.stringify(
+                fileNames
+            )
+
+        );
+
+    }
+
+
+    // ==========================================
+    // RESET FILENAME HISTORY
+    // ==========================================
+
+    resetHistoryButton.addEventListener(
+
+        "click",
+
+        resetFileNameHistory
+
+    );
+
+
+    function resetFileNameHistory() {
+
+        localStorage.removeItem(
+            STORAGE_KEY
+        );
+
+        showMessage(
+            "File Name History Reset"
         );
 
     }
@@ -375,15 +490,21 @@
     // MESSAGE
     // ==========================================
 
-    function showMessage(text, duration = 2000) {
+    function showMessage(
+        text,
+        duration = 2000
+    ) {
 
-        message.textContent = text;
+        message.textContent =
+            text;
 
-        message.style.display = "block";
+        message.style.display =
+            "block";
 
         setTimeout(() => {
 
-            message.style.display = "none";
+            message.style.display =
+                "none";
 
         }, duration);
 
@@ -398,38 +519,46 @@
 
         try {
 
-            // Stop an existing stream first
-
             stopCamera();
 
 
             stream =
-                await navigator.mediaDevices.getUserMedia({
+                await navigator
+                    .mediaDevices
+                    .getUserMedia({
 
-                    video: {
+                        video: {
 
-                        facingMode: {
-                            ideal: "environment"
-                        }
+                            facingMode: {
 
-                    },
+                                ideal:
+                                    "environment"
 
-                    audio: false
+                            }
 
-                });
+                        },
+
+                        audio: false
+
+                    });
 
 
-            video.srcObject = stream;
+            video.srcObject =
+                stream;
 
             await video.play();
 
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
 
             alert(
+
                 "Unable to access the camera. Please make sure camera permission is allowed."
+
             );
 
         }
@@ -444,7 +573,9 @@
     function stopCamera() {
 
         if (!stream) {
+
             return;
+
         }
 
 
@@ -452,16 +583,19 @@
             stream.getTracks();
 
 
-        tracks.forEach(track => {
+        tracks.forEach(
+            track => {
 
-            track.stop();
+                track.stop();
 
-        });
+            }
+        );
 
 
         stream = null;
 
-        video.srcObject = null;
+        video.srcObject =
+            null;
 
     }
 
@@ -471,15 +605,20 @@
     // ==========================================
 
     captureButton.addEventListener(
+
         "click",
+
         capturePhoto
+
     );
 
 
     function capturePhoto() {
 
-        if (!video.videoWidth ||
-            !video.videoHeight) {
+        if (
+            !video.videoWidth ||
+            !video.videoHeight
+        ) {
 
             showMessage(
                 "Camera is still starting..."
@@ -498,24 +637,34 @@
 
 
         const context =
-            canvas.getContext("2d");
+            canvas.getContext(
+                "2d"
+            );
 
 
         context.drawImage(
+
             video,
+
             0,
             0,
+
             canvas.width,
             canvas.height
+
         );
 
 
         // JPEG image data
+        // 90% quality
 
         capturedImageData =
             canvas.toDataURL(
+
                 "image/jpeg",
+
                 0.90
+
             );
 
 
@@ -541,7 +690,8 @@
 
         // Clear previous filename
 
-        fileNameInput.value = "";
+        fileNameInput.value =
+            "";
 
 
         // Focus filename field
@@ -560,18 +710,22 @@
     // ==========================================
 
     fileNameInput.addEventListener(
-        "input",
-        () => {
 
-            // Remove anything that isn't a number
+        "input",
+
+        () => {
 
             fileNameInput.value =
                 fileNameInput.value.replace(
+
                     /[^0-9]/g,
+
                     ""
+
                 );
 
         }
+
     );
 
 
@@ -580,8 +734,11 @@
     // ==========================================
 
     retakeButton.addEventListener(
+
         "click",
+
         returnToCamera
+
     );
 
 
@@ -594,11 +751,14 @@
             "flex";
 
 
-        photoPreview.src = "";
+        photoPreview.src =
+            "";
 
-        capturedImageData = null;
+        capturedImageData =
+            null;
 
-        fileNameInput.value = "";
+        fileNameInput.value =
+            "";
 
 
         await startCamera();
@@ -610,18 +770,21 @@
     // CLEAN FILENAME
     // ==========================================
 
-    function cleanFileName(name) {
+    function cleanFileName(
+        name
+    ) {
 
         let cleaned =
             name.trim();
 
 
-        // Keep numbers only
-
         cleaned =
             cleaned.replace(
+
                 /[^0-9]/g,
+
                 ""
+
             );
 
 
@@ -634,7 +797,9 @@
     // CREATE UNIQUE FILENAME
     // ==========================================
 
-    function getUniqueFileName(baseName) {
+    function getUniqueFileName(
+        baseName
+    ) {
 
         const usedNames =
             getUsedFileNames();
@@ -642,9 +807,15 @@
 
         // First use of this name
 
-        if (!usedNames.includes(baseName)) {
+        if (
+            !usedNames.includes(
+                baseName
+            )
+        ) {
 
-            usedNames.push(baseName);
+            usedNames.push(
+                baseName
+            );
 
             saveUsedFileNames(
                 usedNames
@@ -655,16 +826,22 @@
         }
 
 
-        // Find the next available number
+        // Find next available number
 
-        let number = 2;
+        let number =
+            2;
+
 
         let newName =
             `${baseName}(${number})`;
 
 
         while (
-            usedNames.includes(newName)
+
+            usedNames.includes(
+                newName
+            )
+
         ) {
 
             number++;
@@ -675,7 +852,9 @@
         }
 
 
-        usedNames.push(newName);
+        usedNames.push(
+            newName
+        );
 
         saveUsedFileNames(
             usedNames
@@ -692,25 +871,32 @@
     // ==========================================
 
     saveButton.addEventListener(
+
         "click",
+
         savePhoto
+
     );
 
 
-    async function savePhoto() {
+    function savePhoto() {
 
         let requestedName =
             cleanFileName(
+
                 fileNameInput.value
+
             );
 
 
-        // Require a filename
+        // Require inspection number
 
         if (!requestedName) {
 
             alert(
+
                 "Please enter an inspection number."
+
             );
 
             fileNameInput.focus();
@@ -724,41 +910,32 @@
 
         const finalName =
             getUniqueFileName(
+
                 requestedName
+
             );
-
-
-        // Convert Data URL into a Blob
-
-        const response =
-            await fetch(
-                capturedImageData
-            );
-
-
-        const blob =
-            await response.blob();
 
 
         const fileName =
             `${finalName}.jpg`;
 
 
-        // Create downloadable file
-
-        const url =
-            URL.createObjectURL(blob);
-
+        // Create download link
 
         const link =
-            document.createElement("a");
+            document.createElement(
+                "a"
+            );
 
 
         link.href =
-            url;
+            capturedImageData;
 
         link.download =
             fileName;
+
+        link.style.display =
+            "none";
 
 
         document.body.appendChild(
@@ -774,24 +951,16 @@
         );
 
 
-        // Release object URL
-
-        setTimeout(() => {
-
-            URL.revokeObjectURL(url);
-
-        }, 1000);
-
-
         // Show confirmation
 
         showMessage(
+
             `Saved as ${fileName}`
+
         );
 
 
-        // Wait briefly so the download
-        // request is triggered
+        // Return to camera
 
         setTimeout(() => {
 
@@ -807,12 +976,15 @@
     // ==========================================
 
     window.addEventListener(
+
         "load",
+
         () => {
 
             startCamera();
 
         }
+
     );
 
 
@@ -821,20 +993,26 @@
     // ==========================================
 
     document.addEventListener(
+
         "visibilitychange",
+
         () => {
 
             if (
+
                 document.visibilityState ===
                 "visible"
+
             ) {
 
-                // Restart camera if camera screen
-                // is currently visible
+                // Restart camera if
+                // camera screen is visible
 
                 if (
+
                     cameraScreen.style.display !==
                     "none"
+
                 ) {
 
                     startCamera();
@@ -844,6 +1022,7 @@
             }
 
         }
+
     );
 
 </script>
