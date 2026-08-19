@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover"
+>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111111">
+
+<title>Photo Camera</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #111;
+        font-family: Arial, Helvetica, sans-serif;
+        color: white;
+        overflow: hidden;
+    }
+
+    #app {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* =========================
+       CAMERA SCREEN
+       ========================= */
+
+    #cameraScreen {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #cameraContainer {
+        position: relative;
+        flex: 1;
+        width: 100%;
+        background: black;
+        overflow: hidden;
+    }
+
+    #video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    #cameraControls {
+        padding:
+            16px
+            20px
+            calc(16px + env(safe-area-inset-bottom));
+        background: #111;
+    }
+
+    #captureButton {
+        width: 100%;
+        height: 64px;
+        border: none;
+        border-radius: 14px;
+        background: white;
+        color: black;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #captureButton:active {
+        transform: scale(0.98);
+        background: #dddddd;
+    }
+
+    /* =========================
+       REVIEW SCREEN
+       ========================= */
+
+    #reviewScreen {
+        width: 100%;
+        height: 100%;
+        display: none;
+        flex-direction: column;
+        background: #111;
+    }
+
+    #imageContainer {
+        flex: 1;
+        width: 100%;
+        background: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    #photoPreview {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    #reviewControls {
+        padding:
+            16px
+            20px
+            calc(16px + env(safe-area-inset-bottom));
+        background: #111;
+    }
+
+    #fileNameLabel {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    #fileName {
+        width: 100%;
+        height: 54px;
+        border: none;
+        border-radius: 10px;
+        padding: 0 15px;
+        font-size: 20px;
+        margin-bottom: 14px;
+        color: black;
+        background: white;
+    }
+
+    #buttonRow {
+        display: flex;
+        gap: 12px;
+    }
+
+    .actionButton {
+        flex: 1;
+        height: 58px;
+        border: none;
+        border-radius: 12px;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #retakeButton {
+        background: #555;
+        color: white;
+    }
+
+    #saveButton {
+        background: white;
+        color: black;
+    }
+
+    .actionButton:active {
+        transform: scale(0.97);
+    }
+
+    /* =========================
+       MESSAGE
+       ========================= */
+
+    #message {
+        position: fixed;
+        top: calc(20px + env(safe-area-inset-top));
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-size: 16px;
+        z-index: 100;
+        display: none;
+        text-align: center;
+        max-width: 90%;
+    }
+
+    #canvas {
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- CAMERA SCREEN -->
+
+    <div id="cameraScreen">
+
+        <div id="cameraContainer">
+            <video
+                id="video"
+                autoplay
+                playsinline
+                muted>
+            </video>
+        </div>
+
+        <div id="cameraControls">
+            <button id="captureButton">
+                TAKE PHOTO
+            </button>
+        </div>
+
+    </div>
+
+
+    <!-- REVIEW SCREEN -->
+
+    <div id="reviewScreen">
+
+        <div id="imageContainer">
+            <img
+                id="photoPreview"
+                alt="Captured Photo"
+            >
+        </div>
+
+        <div id="reviewControls">
+
+            <label id="fileNameLabel" for="fileName">
+                File Name
+            </label>
+
+            <input
+                type="text"
+                id="fileName"
+                placeholder="Enter file name"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+            >
+
+            <div id="buttonRow">
+
+                <button
+                    id="retakeButton"
+                    class="actionButton">
+                    RETAKE
+                </button>
+
+                <button
+                    id="saveButton"
+                    class="actionButton">
+                    SAVE PNG
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="message"></div>
+
+<canvas id="canvas"></canvas>
+
+
+<script>
+
+    // ==========================================
+    // ELEMENTS
+    // ==========================================
+
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+
+    const cameraScreen =
+        document.getElementById("cameraScreen");
+
+    const reviewScreen =
+        document.getElementById("reviewScreen");
+
+    const photoPreview =
+        document.getElementById("photoPreview");
+
+    const captureButton =
+        document.getElementById("captureButton");
+
+    const retakeButton =
+        document.getElementById("retakeButton");
+
+    const saveButton =
+        document.getElementById("saveButton");
+
+    const fileNameInput =
+        document.getElementById("fileName");
+
+    const message =
+        document.getElementById("message");
+
+
+    // ==========================================
+    // VARIABLES
+    // ==========================================
+
+    let stream = null;
+
+    let capturedImageData = null;
+
+
+    // ==========================================
+    // FILENAME STORAGE
+    // ==========================================
+
+    const STORAGE_KEY =
+        "photoCameraUsedFileNames";
+
+
+    function getUsedFileNames() {
+
+        try {
+
+            const stored =
+                localStorage.getItem(STORAGE_KEY);
+
+            if (!stored) {
+                return [];
+            }
+
+            return JSON.parse(stored);
+
+        } catch (error) {
+
+            return [];
+
+        }
+
+    }
+
+
+    function saveUsedFileNames(fileNames) {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(fileNames)
+        );
+
+    }
+
+
+    // ==========================================
+    // MESSAGE
+    // ==========================================
+
+    function showMessage(text, duration = 2000) {
+
+        message.textContent = text;
+
+        message.style.display = "block";
+
+        setTimeout(() => {
+
+            message.style.display = "none";
+
+        }, duration);
+
+    }
+
+
+    // ==========================================
+    // START CAMERA
+    // ==========================================
+
+    async function startCamera() {
+
+        try {
+
+            // Stop an existing stream first
+
+            stopCamera();
+
+
+            stream =
+                await navigator.mediaDevices.getUserMedia({
+
+                    video: {
+
+                        facingMode: {
+                            ideal: "environment"
+                        }
+
+                    },
+
+                    audio: false
+
+                });
+
+
+            video.srcObject = stream;
+
+            await video.play();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Unable to access the camera. Please make sure camera permission is allowed."
+            );
+
+        }
+
+    }
+
+
+    // ==========================================
+    // STOP CAMERA
+    // ==========================================
+
+    function stopCamera() {
+
+        if (!stream) {
+            return;
+        }
+
+
+        const tracks =
+            stream.getTracks();
+
+
+        tracks.forEach(track => {
+
+            track.stop();
+
+        });
+
+
+        stream = null;
+
+        video.srcObject = null;
+
+    }
+
+
+    // ==========================================
+    // CAPTURE PHOTO
+    // ==========================================
+
+    captureButton.addEventListener(
+        "click",
+        capturePhoto
+    );
+
+
+    function capturePhoto() {
+
+        if (!video.videoWidth ||
+            !video.videoHeight) {
+
+            showMessage(
+                "Camera is still starting..."
+            );
+
+            return;
+
+        }
+
+
+        canvas.width =
+            video.videoWidth;
+
+        canvas.height =
+            video.videoHeight;
+
+
+        const context =
+            canvas.getContext("2d");
+
+
+        context.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        // PNG image data
+
+        capturedImageData =
+            canvas.toDataURL("image/png");
+
+
+        // Show captured image
+
+        photoPreview.src =
+            capturedImageData;
+
+
+        // Switch screens
+
+        cameraScreen.style.display =
+            "none";
+
+        reviewScreen.style.display =
+            "flex";
+
+
+        // Stop camera while reviewing
+
+        stopCamera();
+
+
+        // Clear previous filename
+
+        fileNameInput.value = "";
+
+
+        // Focus filename field
+
+        setTimeout(() => {
+
+            fileNameInput.focus();
+
+        }, 300);
+
+    }
+
+
+    // ==========================================
+    // RETAKE PHOTO
+    // ==========================================
+
+    retakeButton.addEventListener(
+        "click",
+        returnToCamera
+    );
+
+
+    async function returnToCamera() {
+
+        reviewScreen.style.display =
+            "none";
+
+        cameraScreen.style.display =
+            "flex";
+
+
+        photoPreview.src = "";
+
+        capturedImageData = null;
+
+        fileNameInput.value = "";
+
+
+        await startCamera();
+
+    }
+
+
+    // ==========================================
+    // CLEAN FILENAME
+    // ==========================================
+
+    function cleanFileName(name) {
+
+        let cleaned =
+            name.trim();
+
+
+        // Remove .png if user typed it
+
+        cleaned =
+            cleaned.replace(
+                /\.png$/i,
+                ""
+            );
+
+
+        // Remove characters that are invalid
+        // for common file systems
+
+        cleaned =
+            cleaned.replace(
+                /[\\/:*?"<>|]/g,
+                ""
+            );
+
+
+        return cleaned;
+
+    }
+
+
+    // ==========================================
+    // CREATE UNIQUE FILENAME
+    // ==========================================
+
+    function getUniqueFileName(baseName) {
+
+        const usedNames =
+            getUsedFileNames();
+
+
+        // First use of this name
+
+        if (!usedNames.includes(baseName)) {
+
+            usedNames.push(baseName);
+
+            saveUsedFileNames(
+                usedNames
+            );
+
+            return baseName;
+
+        }
+
+
+        // Find the next available number
+
+        let number = 2;
+
+        let newName =
+            `${baseName}(${number})`;
+
+
+        while (
+            usedNames.includes(newName)
+        ) {
+
+            number++;
+
+            newName =
+                `${baseName}(${number})`;
+
+        }
+
+
+        usedNames.push(newName);
+
+        saveUsedFileNames(
+            usedNames
+        );
+
+
+        return newName;
+
+    }
+
+
+    // ==========================================
+    // SAVE PHOTO
+    // ==========================================
+
+    saveButton.addEventListener(
+        "click",
+        savePhoto
+    );
+
+
+    async function savePhoto() {
+
+        let requestedName =
+            cleanFileName(
+                fileNameInput.value
+            );
+
+
+        // Require a filename
+
+        if (!requestedName) {
+
+            alert(
+                "Please enter a file name."
+            );
+
+            fileNameInput.focus();
+
+            return;
+
+        }
+
+
+        // Make filename unique
+
+        const finalName =
+            getUniqueFileName(
+                requestedName
+            );
+
+
+        // Convert Data URL into a Blob
+
+        const response =
+            await fetch(
+                capturedImageData
+            );
+
+
+        const blob =
+            await response.blob();
+
+
+        const fileName =
+            `${finalName}.png`;
+
+
+        // Create downloadable file
+
+        const url =
+            URL.createObjectURL(blob);
+
+
+        const link =
+            document.createElement("a");
+
+
+        link.href =
+            url;
+
+        link.download =
+            fileName;
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        document.body.removeChild(
+            link
+        );
+
+
+        // Release object URL
+
+        setTimeout(() => {
+
+            URL.revokeObjectURL(url);
+
+        }, 1000);
+
+
+        // Show confirmation
+
+        showMessage(
+            `Saved as ${fileName}`
+        );
+
+
+        // Wait briefly so the download
+        // request is triggered
+
+        setTimeout(() => {
+
+            returnToCamera();
+
+        }, 500);
+
+    }
+
+
+    // ==========================================
+    // START APP
+    // ==========================================
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            startCamera();
+
+        }
+    );
+
+
+    // ==========================================
+    // HANDLE APP BACKGROUNDING
+    // ==========================================
+
+    document.addEventListener(
+        "visibilitychange",
+        () => {
+
+            if (
+                document.visibilityState ===
+                "visible"
+            ) {
+
+                // Restart camera if camera screen
+                // is currently visible
+
+                if (
+                    cameraScreen.style.display !==
+                    "none"
+                ) {
+
+                    startCamera();
+
+                }
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
