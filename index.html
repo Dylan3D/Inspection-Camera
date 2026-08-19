@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="InspectionCameraIcon.png">
 <meta charset="UTF-8">
 
 <meta
@@ -12,6 +11,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#111111">
+
+<link rel="apple-touch-icon" href="inspection-icon.png">
 
 <title>Photo Camera</title>
 
@@ -510,7 +511,7 @@
         );
 
 
-        // JPEG image data
+        // JPEG image data at 90% quality
 
         capturedImageData =
             canvas.toDataURL(
@@ -563,8 +564,6 @@
         "input",
         () => {
 
-            // Remove anything that isn't a number
-
             fileNameInput.value =
                 fileNameInput.value.replace(
                     /[^0-9]/g,
@@ -615,8 +614,6 @@
         let cleaned =
             name.trim();
 
-
-        // Keep numbers only
 
         cleaned =
             cleaned.replace(
@@ -697,7 +694,7 @@
     );
 
 
-    async function savePhoto() {
+    function savePhoto() {
 
         let requestedName =
             cleanFileName(
@@ -728,37 +725,25 @@
             );
 
 
-        // Convert Data URL into a Blob
-
-        const response =
-            await fetch(
-                capturedImageData
-            );
-
-
-        const blob =
-            await response.blob();
-
-
         const fileName =
             `${finalName}.jpg`;
 
 
-        // Create downloadable file
-
-        const url =
-            URL.createObjectURL(blob);
-
+        // Create download link directly
+        // from the JPEG data URL
 
         const link =
             document.createElement("a");
 
 
         link.href =
-            url;
+            capturedImageData;
 
         link.download =
             fileName;
+
+        link.style.display =
+            "none";
 
 
         document.body.appendChild(
@@ -774,15 +759,6 @@
         );
 
 
-        // Release object URL
-
-        setTimeout(() => {
-
-            URL.revokeObjectURL(url);
-
-        }, 1000);
-
-
         // Show confirmation
 
         showMessage(
@@ -790,8 +766,7 @@
         );
 
 
-        // Wait briefly so the download
-        // request is triggered
+        // Return to camera
 
         setTimeout(() => {
 
